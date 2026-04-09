@@ -40,6 +40,16 @@ def valid_ip(value: str) -> str:
     return value
 
 
+def positive_int(value: str) -> int:
+    try:
+        parsed = int(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("Thread count must be an integer.") from exc
+    if parsed < 1:
+        raise argparse.ArgumentTypeError("Thread count must be greater than 0.")
+    return parsed
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="smart-port-scanner",
@@ -56,7 +66,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "-T",
         "--threads",
-        type=int,
+        type=positive_int,
         default=200,
         help="Number of worker threads to use (default: 200).",
     )
@@ -73,9 +83,6 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
-
-    if args.threads < 1:
-        parser.error("--threads must be greater than 0.")
 
     port_start, port_end = args.ports
     scanner = PortScanner(target=args.target, timeout=args.timeout, max_workers=args.threads)
