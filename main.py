@@ -50,6 +50,16 @@ def positive_int(value: str) -> int:
     return parsed
 
 
+def positive_float(value: str) -> float:
+    try:
+        parsed = float(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("Timeout must be a number.") from exc
+    if parsed <= 0:
+        raise argparse.ArgumentTypeError("Timeout must be greater than 0.")
+    return parsed
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="smart-port-scanner",
@@ -72,7 +82,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--timeout",
-        type=float,
+        type=positive_float,
         default=0.7,
         help="Connection timeout in seconds (default: 0.7).",
     )

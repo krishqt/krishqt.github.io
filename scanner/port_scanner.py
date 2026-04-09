@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ipaddress
 import socket
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
@@ -25,7 +26,7 @@ class PortScanResult:
 
 class PortScanner:
     def __init__(self, target: str, timeout: float = 0.7, max_workers: int = 200) -> None:
-        self.target = target
+        self.target = str(ipaddress.ip_address(target))
         self.timeout = timeout
         self.max_workers = max_workers
 
@@ -46,6 +47,7 @@ class PortScanner:
         except OSError:
             return None
 
+        best_result: PortScanResult | None = None
         for family, socktype, proto, _, sockaddr in addresses:
             with socket.socket(family, socktype, proto) as sock:
                 sock.settimeout(self.timeout)
@@ -53,11 +55,13 @@ class PortScanner:
                     if sock.connect_ex(sockaddr) != 0:
                         continue
                     service, banner = self._detect_service(sock, port)
-                    return PortScanResult(port=port, service=service, banner=banner)
+                    result = PortScanResult(port=port, service=service, banner=banner)
+                    if best_result is None or (best_result.banner == "Open port" and result.banner != "Open port"):
+                        best_result = result
                 except OSError:
                     continue
 
-        return None
+        return best_result
 
     def _detect_service(self, sock: socket.socket, port: int) -> tuple[str, str]:
         service = SERVICE_MAP.get(port, "Unknown")
