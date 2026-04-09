@@ -11,7 +11,7 @@ SERVICE_MAP = {
     21: "FTP",
     22: "SSH",
     80: "HTTP",
-    443: "HTTP",
+    443: "HTTPS",
     8080: "HTTP",
 }
 
@@ -64,8 +64,9 @@ class PortScanner:
         banner = ""
 
         try:
-            if service == "HTTP":
-                sock.sendall(b"HEAD / HTTP/1.0\r\nHost: target\r\n\r\n")
+            if service in {"HTTP", "HTTPS"}:
+                request = f"HEAD / HTTP/1.0\r\nHost: {self.target}\r\n\r\n".encode()
+                sock.sendall(request)
                 response = sock.recv(128).decode(errors="ignore").strip()
                 banner = response.splitlines()[0] if response else "HTTP service"
             elif service in {"FTP", "SSH"}:

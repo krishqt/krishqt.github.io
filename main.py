@@ -22,8 +22,12 @@ def parse_port_range(port_range: str) -> tuple[int, int]:
     except ValueError as exc:
         raise argparse.ArgumentTypeError("Port range must contain numeric values.") from exc
 
-    if start < 1 or end > 1000 or start > end:
-        raise argparse.ArgumentTypeError("Port range must be between 1 and 1000, with START <= END.")
+    if start < 1:
+        raise argparse.ArgumentTypeError("Invalid port range: START must be at least 1.")
+    if end > 1000:
+        raise argparse.ArgumentTypeError("Invalid port range: END must be at most 1000.")
+    if start > end:
+        raise argparse.ArgumentTypeError("Invalid port range: START must be less than or equal to END.")
 
     return start, end
 
